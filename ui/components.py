@@ -1,5 +1,7 @@
 # ui/components.py
 import tkinter as tk
+from tkinter import messagebox
+from tkinter import filedialog
 
 
 class InputFrame(tk.Frame):
@@ -16,13 +18,16 @@ class InputFrame(tk.Frame):
 
     def enviar_datos(self):
         try:
-            from ast import literal_eval
+            import json
             texto = self.text_area.get("1.0", "end-1c")
-            datos = literal_eval(texto)
+            datos = json.loads(texto)  # Cambiar literal_eval por json.loads
             self.on_submit(datos)
+        except json.JSONDecodeError as e:
+            print("Error en formato JSON:", e)
+            tk.messagebox.showerror("Error", f"Formato de entrada inválido:\n{e}")
         except Exception as e:
-            print("Error en formato:", e)
-
+            print("Error inesperado:", e)
+            tk.messagebox.showerror("Error", f"Error inesperado:\n{e}")
 
 class ResultFrame(tk.Frame):
     def __init__(self, parent):
@@ -34,8 +39,13 @@ class ResultFrame(tk.Frame):
 
     def mostrar(self, resultados):
         self.text_area.delete(1.0, tk.END)
-        for k, v in resultados.items():
-            self.text_area.insert(tk.END, f"{k}: {v}\n")
+        if isinstance(resultados, dict):  # Verifica si es un diccionario
+            for k, v in resultados.items():
+                self.text_area.insert(tk.END, f"{k}: {v}\n")
+        elif isinstance(resultados, str):  # Si es una cadena, simplemente la muestra
+            self.text_area.insert(tk.END, resultados)
+        else:
+            self.text_area.insert(tk.END, "Error: Formato de resultados no reconocido.")
 
 
 class DrawFrame(tk.Frame):

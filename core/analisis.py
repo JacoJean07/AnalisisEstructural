@@ -118,19 +118,53 @@ def calcular_estructura(datos):
         q = (c * (u_j - u_i) + s * (v_j - v_i)) * (200e9 * 0.01) / L
         fuerzas[f"Barra {elem_id}"] = q
 
-    # Resultados finales
+    # Formatear desplazamientos
     desplazamientos = {
         str(i+1): [U_global[2*i], U_global[2*i+1]]
         for i in range(num_nodos)
     }
 
+    # Formatear reacciones
     reacciones = {
         str(i+1): [Reacciones[2*i], Reacciones[2*i+1]]
         for i in range(num_nodos) if 2*i in fixed_dofs or 2*i+1 in fixed_dofs
     }
 
-    return {
-        "desplazamientos": desplazamientos,
-        "fuerzas_internas": fuerzas,
-        "reacciones": reacciones
+    # Formatear fuerzas internas
+    fuerzas = {
+        f"Barra {elem_id}": fuerza
+        for elem_id, fuerza in fuerzas.items()
     }
+
+    # Verificar que las variables son diccionarios
+    if not isinstance(desplazamientos, dict):
+        raise TypeError("La variable 'desplazamientos' no es un diccionario.")
+    if not isinstance(reacciones, dict):
+        raise TypeError("La variable 'reacciones' no es un diccionario.")
+    if not isinstance(fuerzas, dict):
+        raise TypeError("La variable 'fuerzas' no es un diccionario.")
+
+    # Construir el formato de salida
+    resultado_formateado = []
+
+    # Desplazamientos
+    resultado_formateado.append("Desplazamientos:")
+    for nodo, desplazamiento in desplazamientos.items():
+        dx = f"{desplazamiento[0]:.2f}"
+        dy = f"{desplazamiento[1]:.2f}"
+        resultado_formateado.append(f"  Nodo {nodo}: dx = {dx}, dy = {dy}")
+
+    # Fuerzas internas
+    resultado_formateado.append("\nFuerzas Internas:")
+    for barra, fuerza in fuerzas.items():
+        resultado_formateado.append(f"  {barra}: {fuerza:.2f} N")
+
+    # Reacciones
+    resultado_formateado.append("\nReacciones:")
+    for nodo, reaccion in reacciones.items():
+        fx = f"{reaccion[0]:.2f}"
+        fy = f"{reaccion[1]:.2f}"
+        resultado_formateado.append(f"  Nodo {nodo}: Fx = {fx}, Fy = {fy}")
+
+    # Unir el resultado en una sola cadena
+    return "\n".join(resultado_formateado)
